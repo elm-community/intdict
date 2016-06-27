@@ -1,7 +1,7 @@
 {
-    "version": "1.4.3",
+    "version": "1.0.0",
     "summary": "Optimized dictionary specialization for Integers. Mirrors the dictionary API.",
-    "repository": "https://github.com/sgraf812/elm-intdict.git",
+    "repository": "https://github.com/elm-community/intdict.git",
     "license": "MIT",
     "source-directories": [
         "src"

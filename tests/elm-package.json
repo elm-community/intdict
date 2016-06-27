@@ -1,7 +1,7 @@
 {
-    "version": "1.1.0",
+    "version": "1.0.0",
     "summary": "Test suite for IntDict",
-    "repository": "https://github.com/sgraf812/elm-intdict.git",
+    "repository": "https://github.com/elm-community/intdict.git",
     "license": "MIT",
     "source-directories": [
         ".",
