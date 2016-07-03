@@ -50,10 +50,42 @@ tests =
         [ test "filter" <| assertEqual (IntDict.singleton 2 "2") (IntDict.filter (\k v -> k == 2) numbers)
         , test "partition" <| assertEqual (IntDict.singleton 2 "2", IntDict.singleton 3 "3") (IntDict.partition (\k v -> k == 2) numbers)
         ]
+      mergeTests =
+        let
+          insertBoth key leftVal rightVal dict =
+            IntDict.insert key (leftVal ++ rightVal) dict
+          s1 =
+            IntDict.empty |> IntDict.insert 1 [ 1 ]
+          s2 =
+            IntDict.empty |> IntDict.insert 2 [ 2 ]
+          s23 =
+            IntDict.empty |> IntDict.insert 2 [ 3 ]
+          b1 =
+            List.map (\i -> (i, [i])) [1..10] |> IntDict.fromList
+          b2 =
+            List.map (\i -> (i, [i])) [5..15] |> IntDict.fromList
+          bExpected =
+            [(1,[1]),(2,[2]),(3,[3]),(4,[4]),(5,[5,5]),(6,[6,6]),(7,[7,7]),(8,[8,8]),(9,[9,9]),(10,[10,10]),(11,[11]),(12,[12]),(13,[13]),(14,[14]),(15,[15])]
+        in
+          suite "merge Tests"
+            [ test "merge empties" <| assertEqual (IntDict.empty)
+              (IntDict.merge IntDict.insert insertBoth IntDict.insert IntDict.empty IntDict.empty IntDict.empty)
+            , test "merge singletons in order" <| assertEqual [(1, [1]), (2, [2])]
+              ((IntDict.merge IntDict.insert insertBoth IntDict.insert s1 s2 IntDict.empty) |> IntDict.toList)
+            , test "merge singletons out of order" <| assertEqual [(1, [1]), (2, [2])]
+              ((IntDict.merge IntDict.insert insertBoth IntDict.insert s2 s1 IntDict.empty) |> IntDict.toList)
+            , test "merge with duplicate key" <| assertEqual [(2, [2, 3])]
+              ((IntDict.merge IntDict.insert insertBoth IntDict.insert s2 s23 IntDict.empty) |> IntDict.toList)
+            , test "partially overlapping" <| assertEqual bExpected
+              ((IntDict.merge IntDict.insert insertBoth IntDict.insert b1 b2 IntDict.empty) |> IntDict.toList)
+            ]
       regressionTests = suite "regressions Tests"
         [ suite "issue #1" <|
-            let a = IntDict.fromList [(4,20),(6,11)]
-                b = IntDict.fromList [(1,0),(2,7),(3,9),(4,22),(6,14)]
+            let
+              a =
+                IntDict.fromList [(4,20),(6,11)]
+              b =
+                IntDict.fromList [(1,0),(2,7),(3,9),(4,22),(6,14)]
             in
               [ test "a union b" <|
                   assertEqual
@@ -71,5 +103,6 @@ tests =
     , queryTests
     , combineTests
     , transformTests
+    , mergeTests
     , regressionTests
     ]
