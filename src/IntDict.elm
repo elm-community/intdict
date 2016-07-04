@@ -463,6 +463,7 @@ union =
 
 
 {-| Keep a key-value pair when its key appears in the second dictionary.
+Preference is given to values in the first dictionary.
 -}
 intersect : IntDict a -> IntDict b -> IntDict a
 intersect l r =
