@@ -163,7 +163,7 @@ Returns 0 as branchingBit if equal.
 
 Find the highest bit not set in
 
-  diff = x `xor` y -- 0b011001 `xor` 0b011010 = 0b000011
+    diff = x `xor` y -- 0b011001 `xor` 0b011010 = 0b000011
 
 -}
 lcp : Int -> Int -> KeyPrefix
@@ -463,8 +463,8 @@ union =
 
 
 {-| Keep a key-value pair when its key appears in the second dictionary.
-Preference is given to values in the first dictionary. -}
-intersect : IntDict v -> IntDict v -> IntDict v
+-}
+intersect : IntDict a -> IntDict b -> IntDict a
 intersect l r =
   case (l, r) of
     (Empty, _) -> Empty
@@ -491,7 +491,7 @@ intersect l r =
 
 {-| Keep a key-value pair when its key does not appear in the second dictionary.
 -}
-diff : IntDict v -> IntDict v -> IntDict v
+diff : IntDict a -> IntDict b -> IntDict a
 diff l r =
   case (l, r) of
     (Empty, _) -> Empty
@@ -519,7 +519,7 @@ accumulators for when a given key appears:
   1. Only in the left dictionary.
   2. In both dictionaries.
   3. Only in the right dictionary.
-  
+
 You then traverse all the keys from lowest to highest, building up whatever
 you want.
 
