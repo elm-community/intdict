@@ -462,7 +462,7 @@ union =
 
 {-| Keep a key-value pair when its key appears in the second dictionary.
 Preference is given to values in the first dictionary. -}
-intersect : IntDict v -> IntDict v -> IntDict v
+intersect : IntDict a -> IntDict b -> IntDict a
 intersect l r =
   case (l, r) of
     (Empty, _) -> Empty
@@ -489,7 +489,7 @@ intersect l r =
 
 {-| Keep a key-value pair when its key does not appear in the second dictionary.
 Preference is given to the first dictionary. -}
-diff : IntDict v -> IntDict v -> IntDict v
+diff : IntDict a -> IntDict b -> IntDict a
 diff l r =
   case (l, r) of
     (Empty, _) -> Empty
