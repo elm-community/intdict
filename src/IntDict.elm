@@ -12,7 +12,7 @@ module IntDict exposing
 
 {-| # IntDict
 
-This module exposes the same API as `Dict`.
+This module exposes the same API as [`Dict`](http://package.elm-lang.org/packages/elm-lang/core/latest/Dict).
 
 # Technicalities
 
@@ -33,6 +33,8 @@ As noted in the [references](http://ittc.ku.edu/~andygill/papers/IntMap98.pdf), 
 
 where *n* and *m* are the sizes of the first and second dictionary respectively and *W*
 is the number of bits in `Int` (so a constant with current value 32).
+
+Dictionary equality with `(==)` is unreliable and should not be used.
 
 # Data
 @docs IntDict, isValidKey
@@ -488,7 +490,7 @@ intersect l r =
 
 
 {-| Keep a key-value pair when its key does not appear in the second dictionary.
-Preference is given to the first dictionary. -}
+-}
 diff : IntDict v -> IntDict v -> IntDict v
 diff l r =
   case (l, r) of
@@ -517,6 +519,7 @@ accumulators for when a given key appears:
   1. Only in the left dictionary.
   2. In both dictionaries.
   3. Only in the right dictionary.
+  
 You then traverse all the keys from lowest to highest, building up whatever
 you want.
 
@@ -577,19 +580,19 @@ merge left both right l r acc =
 -- LISTS
 
 
-{-| Get all of the keys in a dictionary. -}
+{-| Get all of the keys in a dictionary, sorted from lowest to highest. -}
 keys : IntDict v -> List Int
 keys dict =
   foldr (\key value keyList -> key :: keyList) [] dict
 
 
-{-| Get all of the values in a dictionary. -}
+{-| Get all of the values in a dictionary, in the order of their keys. -}
 values : IntDict v -> List v
 values dict =
   foldr (\key value valueList -> value :: valueList) [] dict
 
 
-{-| Convert a dictionary into an association list of key-value pairs. -}
+{-| Convert a dictionary into an association list of key-value pairs, sorted by keys. -}
 toList : IntDict v -> List (Int, v)
 toList dict =
   foldr (\key value list -> (key, value) :: list) [] dict
