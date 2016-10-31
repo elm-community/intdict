@@ -6,7 +6,7 @@ module IntDict exposing
   , filter, map, foldl, foldr, partition
   , uniteWith, union, intersect, diff, merge
   , keys, values, toList, fromList
-  , toString'
+  , toString
   )
 
 
@@ -49,7 +49,7 @@ Dictionary equality with `(==)` is unreliable and should not be used.
 # Transform
 @docs map, foldl, foldr, filter, partition
 # String representation
-@docs toString'
+@docs toString
 
 -}
 
@@ -95,10 +95,10 @@ use the safe functions from `IntDict.Safe` which perform the check for you.
 As with the current version of JavaScript (2015), only 32 bit signed integers are supported.
 If this ever changes, contact me! Certain parts of the implementation depend on this! -}
 isValidKey : Int -> Bool
-isValidKey k =          -- perform some dirty JS magic to turn the double
-  k `Bitwise.or` 0 == k -- into an integer. We can then check for overflow.
-                        -- This seems easier than checking for 32 bits.
-                        -- `or` 0 is similar to `mod` <32bits>
+isValidKey k =        -- perform some dirty JS magic to turn the double
+  Bitwise.or k 0 == k -- into an integer. We can then check for overflow.
+                      -- This seems easier than checking for 32 bits.
+                      -- `or` 0 is similar to `mod` <32bits>
 
 
 -- SMART CONSTRUCTORS
@@ -136,7 +136,7 @@ higherBitMask branchingBit =
 
 prefixMatches : KeyPrefix -> Int -> Bool
 prefixMatches p n =
-  n `Bitwise.and` higherBitMask p.branchingBit == p.prefixBits
+  Bitwise.and n (higherBitMask p.branchingBit) == p.prefixBits
 
 
 {- Clear all bits other than the highest in n.
@@ -145,7 +145,7 @@ Assumes n to be positive! For implementation notes, see [this](http://aggregate.
 highestBitSet : Int -> Int
 highestBitSet n =
   let
-    shiftOr n' shift = n' `Bitwise.or` (n' `Bitwise.shiftRightLogical` shift)
+    shiftOr i shift = Bitwise.or i (Bitwise.shiftRightZfBy shift i)
     n1 = shiftOr n 1
     n2 = shiftOr n1 2
     n3 = shiftOr n2 4
@@ -155,7 +155,7 @@ highestBitSet n =
     -- n5 has the same msb set as diff. However, all
     -- bits below the msb are also 1! This means we can
     -- do the following to get the msb:
-  in n5 `Bitwise.and` Bitwise.complement (n5 `Bitwise.shiftRightLogical` 1)
+  in n5 |> Bitwise.shiftRightZfBy 1 |> Bitwise.complement |> Bitwise.and n5
 
 
 {- Compute the longest common prefix of two keys.
@@ -169,10 +169,10 @@ Find the highest bit not set in
 lcp : Int -> Int -> KeyPrefix
 lcp x y =
   let
-    diff = x `Bitwise.xor` y
+    diff = Bitwise.xor x y
     branchingBit = highestBitSet diff
     mask = higherBitMask branchingBit
-    prefixBits = x `Bitwise.and` mask   -- should equal y & mask
+    prefixBits = Bitwise.and x mask   -- should equal y & mask
   in
     { prefixBits = prefixBits
     , branchingBit = branchingBit
@@ -184,11 +184,10 @@ signBit =
   highestBitSet -1
 
 isBranchingBitSet : KeyPrefix -> Int -> Bool
-isBranchingBitSet p n =
-  let
-    n' = n `Bitwise.xor` signBit -- This is a hack that fixes the ordering of keys.
-  in
-    n' `Bitwise.and` p.branchingBit /= 0
+isBranchingBitSet p =
+  Bitwise.xor signBit -- This is a hack that fixes the ordering of keys.
+  >> Bitwise.and p.branchingBit
+  >> (/=) 0
 
 
 -- BUILD
@@ -223,9 +222,9 @@ remove key dict =
 update : Int -> (Maybe v -> Maybe v) -> IntDict v -> IntDict v
 update key alter dict =
   let
-    alteredNode v =
-      case alter v of                   -- handle this centrally
-        Just v' -> leaf key v'
+    alteredNode mv =
+      case alter mv of                   -- handle this centrally
+        Just v -> leaf key v
         Nothing -> empty                -- The inner constructor will do the rest
 
     join (k1, l) (k2, r) =                -- precondition: k1 /= k2
@@ -435,8 +434,8 @@ uniteWith merger l r =
     case (l, r) of
       (Empty, _) -> r
       (_, Empty) -> l
-      (Leaf l, _) -> update l.key (\r' -> mergeWith l.key (Just l.value) r') r
-      (_, Leaf r) -> update r.key (\l' -> mergeWith r.key l' (Just r.value)) l
+      (Leaf l, _) -> update l.key (\r_ -> mergeWith l.key (Just l.value) r_) r
+      (_, Leaf r) -> update r.key (\l_ -> mergeWith r.key l_ (Just r.value)) l
       (Inner il, Inner ir) ->
         case determineBranchRelation il ir of
           SamePrefix -> -- Merge both left and right sub trees
@@ -602,11 +601,7 @@ toList dict =
 {-| Convert an association list into a dictionary. -}
 fromList : List (Int, v) -> IntDict v
 fromList pairs =
-  let
-    insert' (k, v) dict =
-      insert k v dict
-  in
-    List.foldl insert' empty pairs
+  List.foldl (uncurry insert) empty pairs
 
 
 -- STRING REPRESENTATION
@@ -614,6 +609,6 @@ fromList pairs =
 
 {-| Generates a string representation similar to what `toString`
 generates for `Dict`. -}
-toString' : IntDict v -> String
-toString' dict =
-  "IntDict.fromList " ++ toString (toList dict)
+toString : IntDict v -> String
+toString dict =
+  "IntDict.fromList " ++ Basics.toString (toList dict)

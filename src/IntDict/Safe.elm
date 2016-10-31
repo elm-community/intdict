@@ -6,7 +6,7 @@ module IntDict.Safe exposing
     )
 
 
-{-| Safe API wrappers for `IntDict`s build and query operators 
+{-| Safe API wrappers for `IntDict`s build and query operators
 to prevent integer overflows with JavaScripts number type.
 
 Prior to delegating to their 'unsafe' equivalent, these functions verify
@@ -29,7 +29,7 @@ import IntDict exposing (..)
 type InvalidKey = InvalidKey
 
 
-{-| A value of this type is returned by all functions in this module. 
+{-| A value of this type is returned by all functions in this module.
 See the core libraries' `Result` documentation for how to cope with it. -}
 type alias SafeKeyResult a = Result InvalidKey a
 
