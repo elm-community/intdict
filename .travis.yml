@@ -7,6 +7,6 @@ install:
 - npm install -g elm-test
 - elm-package install -y
 - pushd tests && elm-package install -y && popd
-- elm-format --validate src/ tests/Tests.elm tests/Tests/
+- elm-format --validate src/ tests/Tests/
 script:
 - elm-test
