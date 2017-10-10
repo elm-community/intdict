@@ -41,7 +41,7 @@ Dictionary equality with `(==)` is unreliable and should not be used.
 # Build
 @docs empty, singleton, insert, update, remove
 # Query
-@docs isEmpty, size, member, get, findMin, findMax
+@docs isEmpty, size, member, get, before, after, findMin, findMax
 # Combine
 @docs uniteWith, union, intersect, diff, merge
 # Lists
