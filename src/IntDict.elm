@@ -900,13 +900,16 @@ in terms of this function. The only reason that's not the case is to have more
 sharing of substructure.
 
     uniteWith merger l r =
-      merge insert merger insert l r empty
+        merge insert merger insert l r empty
+
     union l r =
-      merge insert (\k a _ d -> insert k a d) insert l r empty
+        merge insert (\k a _ d -> insert k a d) insert l r empty
+
     intersect l r =
-      merge (\_ _ d -> d) (\k a _ d -> insert k a d) (\_ _ d -> d) l r empty
+        merge (\_ _ d -> d) (\k a _ d -> insert k a d) (\_ _ d -> d) l r empty
+
     diff l r =
-      merge insert (\_ _ _ d -> d) (\_ _ d -> d) l r empty
+        merge insert (\_ _ _ d -> d) (\_ _ d -> d) l r empty
 
 -}
 merge :
