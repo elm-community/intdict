@@ -2,7 +2,7 @@ module IntDict exposing
   ( IntDict
   , isValidKey
   , empty, singleton, insert, update, remove
-  , isEmpty, size, member, get, findMin, findMax
+  , isEmpty, size, member, get, findMin, findMax, before, after
   , filter, map, foldl, foldr, partition
   , uniteWith, union, intersect, diff, merge
   , keys, values, toList, fromList
@@ -297,6 +297,64 @@ get key dict =
       else if isBranchingBitSet i.prefix key -- continue in left or right branch,
          then get key i.right        -- depending on whether the branching
          else get key i.left         -- bit is set in the key
+
+{-| Find the key and value in the dictionary before the given key. -}
+before : Int -> IntDict v -> Maybe (Int, v)
+before key dict =
+  case dict of
+    Empty ->
+      Nothing
+    Leaf l ->
+      if l.key >= key then
+        Nothing
+      else
+        Just (l.key, l.value)
+    Inner i ->
+      case i.right of
+        Empty ->
+          before key i.left
+        Leaf l -> 
+          if l.key == key then 
+            findMax i.left
+          else if l.key < key then
+            Just (l.key, l.value)
+          else
+            before key i.left
+        Inner ii ->
+          case before key i.right of
+            Nothing ->
+              before key i.left
+            Just v ->
+              Just v
+
+{-| Find the key and value in the dictionary after the given key. -}
+after : Int -> IntDict v -> Maybe (Int, v)
+after key dict =
+  case dict of
+    Empty ->
+      Nothing
+    Leaf l ->
+      if l.key <= key then
+        Nothing
+      else
+        Just (l.key, l.value)
+    Inner i ->
+      case i.left of
+        Empty ->
+          after key i.right
+        Leaf l -> 
+          if l.key == key then 
+            findMin i.right
+          else if l.key > key then
+            Just (l.key, l.value)
+          else
+            after key i.right
+        Inner ii ->
+          case after key i.left of
+            Nothing ->
+              after key i.right
+            Just v ->
+              Just v
 
 
 {-| Find the minimum key and value in the dictionary. -}

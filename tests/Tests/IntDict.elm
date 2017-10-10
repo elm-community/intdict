@@ -14,7 +14,7 @@ numbers : IntDict String
 numbers = IntDict.fromList [ (2, "2"), (3, "3") ]
 
 moreNumbers : IntDict String
-moreNumbers = IntDict.fromList [ (2, "2"), (5, "3"), (7, "7"), (45, "45") ]
+moreNumbers = IntDict.fromList [ (2, "2"), (5, "5"), (7, "7"), (45, "45") ]
 
 all : Test
 all =
@@ -41,6 +41,28 @@ all =
         , test "get 2" <| \() -> Expect.equal Nothing (IntDict.get 5234 numbers)
         , test "findMin" <| \() -> Expect.equal (Just (2, "2")) (IntDict.findMin numbers)
         , test "findMax" <| \() -> Expect.equal (Just (3, "3")) (IntDict.findMax numbers)
+        , test "before 2 empty" <| \() -> Expect.equal Nothing (IntDict.before 2 IntDict.empty)
+        , test "before 2" <| \() -> Expect.equal Nothing (IntDict.before 2 numbers)
+        , test "before 3" <| \() -> Expect.equal (Just (2, "2")) (IntDict.before 3 numbers)
+        , test "before 4" <| \() -> Expect.equal (Just (3, "3")) (IntDict.before 4 numbers)
+        , test "before 2'" <| \() -> Expect.equal (Nothing) (IntDict.before 2 moreNumbers)
+        , test "before 5" <| \() -> Expect.equal (Just (2, "2")) (IntDict.before 5 moreNumbers)
+        , test "before 6" <| \() -> Expect.equal (Just (5, "5")) (IntDict.before 6 moreNumbers)
+        , test "before 7" <| \() -> Expect.equal (Just (5, "5")) (IntDict.before 7 moreNumbers)
+        , test "before 44" <| \() -> Expect.equal (Just (7, "7")) (IntDict.before 44 moreNumbers)
+        , test "before 45" <| \() -> Expect.equal (Just (7, "7")) (IntDict.before 45 moreNumbers)
+        , test "before 46" <| \() -> Expect.equal (Just (45, "45")) (IntDict.before 46 moreNumbers)
+        , test "after 2 empty" <| \() -> Expect.equal Nothing (IntDict.after 2 IntDict.empty)
+        , test "after 2" <| \() -> Expect.equal (Just (3, "3")) (IntDict.after 2 numbers)
+        , test "after 3" <| \() -> Expect.equal Nothing (IntDict.after 3 numbers)
+        , test "after 1" <| \() -> Expect.equal (Just (2, "2")) (IntDict.after 1 numbers)
+        , test "after 1'" <| \() -> Expect.equal (Just (2, "2")) (IntDict.after 1 moreNumbers)
+        , test "after 2'" <| \() -> Expect.equal (Just (5, "5")) (IntDict.after 2 moreNumbers)
+        , test "after 5" <| \() -> Expect.equal (Just (7, "7")) (IntDict.after 5 moreNumbers)
+        , test "after 6" <| \() -> Expect.equal (Just (7, "7")) (IntDict.after 6 moreNumbers)
+        , test "after 7" <| \() -> Expect.equal (Just (45, "45")) (IntDict.after 7 moreNumbers)
+        , test "after 44" <| \() -> Expect.equal (Just (45, "45")) (IntDict.after 44 moreNumbers)
+        , test "after 45" <| \() -> Expect.equal Nothing (IntDict.after 45 moreNumbers)
         ]
     , describe "combine"
         [ test "union" <| \() -> Expect.equal numbers (IntDict.union (IntDict.singleton 3 "3") (IntDict.singleton 2 "2"))
