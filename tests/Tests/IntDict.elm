@@ -18,7 +18,7 @@ numbers =
 
 moreNumbers : IntDict String
 moreNumbers =
-    IntDict.fromList [ ( -5, "-5" ), ( 2, "2" ), ( 5, "5" ), ( 7, "7" ), ( 45, "45" ) ]
+    IntDict.fromList [ ( -5, "-5" ), ( -1, "-1" ), ( 2, "2" ), ( 5, "5" ), ( 7, "7" ), ( 45, "45" ) ]
 
 
 build : Test
@@ -42,7 +42,7 @@ query =
         , test "isEmpty - non-empty dict is not empty" <| \() -> Expect.equal False (IntDict.isEmpty numbers)
         , test "size 1" <| \() -> Expect.equal 0 (IntDict.size IntDict.empty)
         , test "size 2" <| \() -> Expect.equal 2 (IntDict.size numbers)
-        , test "size 3" <| \() -> Expect.equal 6 (IntDict.size (IntDict.union numbers moreNumbers))
+        , test "size 3" <| \() -> Expect.equal 7 (IntDict.size (IntDict.union numbers moreNumbers))
         , test "member 1" <| \() -> Expect.equal True (IntDict.member 2 numbers)
         , test "member 2" <| \() -> Expect.equal False (IntDict.member 5234 numbers)
         , test "get 1" <| \() -> Expect.equal (Just "2") (IntDict.get 2 numbers)
@@ -53,7 +53,8 @@ query =
         , test "before 2" <| \() -> Expect.equal Nothing (IntDict.before 2 numbers)
         , test "before 3" <| \() -> Expect.equal (Just ( 2, "2" )) (IntDict.before 3 numbers)
         , test "before 4" <| \() -> Expect.equal (Just ( 3, "3" )) (IntDict.before 4 numbers)
-        , test "before 2'" <| \() -> Expect.equal (Just ( -5, "-5" )) (IntDict.before 2 moreNumbers)
+        , test "before -1'" <| \() -> Expect.equal (Just ( -5, "-5" )) (IntDict.before -1 moreNumbers)
+        , test "before 2'" <| \() -> Expect.equal (Just ( -1, "-1" )) (IntDict.before 2 moreNumbers)
         , test "before 5" <| \() -> Expect.equal (Just ( 2, "2" )) (IntDict.before 5 moreNumbers)
         , test "before 6" <| \() -> Expect.equal (Just ( 5, "5" )) (IntDict.before 6 moreNumbers)
         , test "before 7" <| \() -> Expect.equal (Just ( 5, "5" )) (IntDict.before 7 moreNumbers)
@@ -64,6 +65,8 @@ query =
         , test "after 2" <| \() -> Expect.equal (Just ( 3, "3" )) (IntDict.after 2 numbers)
         , test "after 3" <| \() -> Expect.equal Nothing (IntDict.after 3 numbers)
         , test "after 1" <| \() -> Expect.equal (Just ( 2, "2" )) (IntDict.after 1 numbers)
+        , test "after -6'" <| \() -> Expect.equal (Just ( -5, "-5" )) (IntDict.after -6 moreNumbers)
+        , test "after -1'" <| \() -> Expect.equal (Just ( 2, "2" )) (IntDict.after -1 moreNumbers)
         , test "after 1'" <| \() -> Expect.equal (Just ( 2, "2" )) (IntDict.after 1 moreNumbers)
         , test "after 2'" <| \() -> Expect.equal (Just ( 5, "5" )) (IntDict.after 2 moreNumbers)
         , test "after 5" <| \() -> Expect.equal (Just ( 7, "7" )) (IntDict.after 5 moreNumbers)

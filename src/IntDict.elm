@@ -106,7 +106,7 @@ import Maybe exposing (Maybe(..))
 
 
 type alias KeyPrefix =
-    { prefixBits : Int
+    { prefixBits : Int -- higher key prefix excluding the branching bit
     , branchingBit : Int -- already in 2^i form -> always > 0 (except when the sign bit is set, then it's < 0)
     }
 
@@ -127,7 +127,7 @@ type alias InnerType v =
 `Dict Int v`.
 -}
 type IntDict v
-    = Empty
+    = Empty -- Invariant: Never child of an `Inner` node
     | Leaf { key : Int, value : v }
     | Inner (InnerType v)
 
@@ -446,89 +446,76 @@ get key dict =
             if not (prefixMatches i.prefix key) then
                 Nothing
             else if
+                -- continue in left or right branch
                 isBranchingBitSet i.prefix key
-                -- continue in left or right branch,
             then
-                get key i.right
                 -- depending on whether the branching
+                get key i.right
             else
+                -- bit is set in the key
                 get key i.left
-
-
-
--- bit is set in the key
 
 
 {-| Find the key and value in the dictionary before the given key.
 -}
 before : Int -> IntDict v -> Maybe ( Int, v )
 before key dict =
-    case dict of
-        Empty ->
-            Nothing
-
-        Leaf l ->
-            if l.key >= key then
-                Nothing
-            else
-                Just ( l.key, l.value )
-
-        Inner i ->
-            case i.right of
+    let
+        go def dict =
+            case dict of
                 Empty ->
-                    before key i.left
+                    findMax def
 
                 Leaf l ->
-                    if l.key == key then
-                        findMax i.left
-                    else if l.key < key then
-                        Just ( l.key, l.value )
+                    if l.key >= key then
+                        findMax def
                     else
-                        before key i.left
+                        Just ( l.key, l.value )
 
-                Inner ii ->
-                    case before key i.right of
-                        Nothing ->
-                            before key i.left
-
-                        Just v ->
-                            Just v
+                Inner i ->
+                    if not (prefixMatches i.prefix key) then
+                        if i.prefix.prefixBits > key then
+                            findMax def
+                        else
+                            -- right must always be non-empty
+                            findMax i.right
+                    else if isBranchingBitSet i.prefix key then
+                        go i.left i.right
+                    else
+                        go def i.left
+    in
+    go Empty dict
 
 
 {-| Find the key and value in the dictionary after the given key.
 -}
 after : Int -> IntDict v -> Maybe ( Int, v )
 after key dict =
-    case dict of
-        Empty ->
-            Nothing
-
-        Leaf l ->
-            if l.key <= key then
-                Nothing
-            else
-                Just ( l.key, l.value )
-
-        Inner i ->
-            case i.left of
+    let
+        go def dict =
+            case dict of
                 Empty ->
-                    after key i.right
+                    findMin def
 
                 Leaf l ->
-                    if l.key == key then
-                        findMin i.right
-                    else if l.key > key then
-                        Just ( l.key, l.value )
+                    if l.key <= key then
+                        findMin def
                     else
-                        after key i.right
+                        Just ( l.key, l.value )
 
-                Inner ii ->
-                    case after key i.left of
-                        Nothing ->
-                            after key i.right
-
-                        Just v ->
-                            Just v
+                Inner i ->
+                    if not (prefixMatches i.prefix key) then
+                        if i.prefix.prefixBits < key then
+                            findMin def
+                        else
+                            -- left must always be non-empty
+                            findMin i.left
+                    else if isBranchingBitSet i.prefix key then
+                        go def i.right
+                    else
+                        go i.right i.left
+    in
+    go Empty dict
 
 
 {-| Find the minimum key and value in the dictionary.
