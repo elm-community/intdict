@@ -50,7 +50,6 @@ Dictionary equality with `(==)` is unreliable and should not be used.
 @docs map, foldl, foldr, filter, partition
 # String representation
 @docs toString
-
 -}
 
 
@@ -62,7 +61,7 @@ import Debug
 
 type alias KeyPrefix =
   { prefixBits : Int
-  , branchingBit : Int -- already in 2^i form -> always > 0
+  , branchingBit : Int -- already in 2^i form -> always > 0 (except when the sign bit is set, then it's < 0)
   }
 
 
@@ -126,12 +125,15 @@ leaf k v = Leaf
 -- SOME PRIMITIVES
 
 {-| Consider a branchingBit of 2^4 = 16 = 0b00010000.
-Then branchingBit*2-1 = 2^5-1  = 31 = 0b00011111,
-Now apply bitwise NOT to get the mask 0b11100000.
+Then branchingBit-1 = 15 = 0b00001111,
+Now apply bitwise NOT to get the mask 0b11110000.
+Finally, we clear out the branchingBit itself with `Bitwise.xor`.
 -}
 higherBitMask : Int -> Int
 higherBitMask branchingBit =
-  Bitwise.complement <| branchingBit*2 - 1
+  branchingBit - 1
+  |> Bitwise.complement
+  |> Bitwise.xor branchingBit
 
 
 prefixMatches : KeyPrefix -> Int -> Bool
@@ -139,8 +141,8 @@ prefixMatches p n =
   Bitwise.and n (higherBitMask p.branchingBit) == p.prefixBits
 
 
-{- Clear all bits other than the highest in n.
-Assumes n to be positive! For implementation notes, see [this](http://aggregate.org/MAGIC/#Most Significant 1 Bit).
+{-| Clear all bits other than the highest in n.
+For implementation notes, see [this](http://aggregate.org/MAGIC/#Most Significant 1 Bit).
 -}
 highestBitSet : Int -> Int
 highestBitSet n =
@@ -157,8 +159,13 @@ highestBitSet n =
     -- do the following to get the msb:
   in n5 |> Bitwise.shiftRightZfBy 1 |> Bitwise.complement |> Bitwise.and n5
 
+mostSignificantBranchingBit : Int -> Int -> Int
+mostSignificantBranchingBit a b =
+  if a == signBit || b == signBit
+  then signBit
+  else max a b
 
-{- Compute the longest common prefix of two keys.
+{-| Compute the longest common prefix of two keys.
 Returns 0 as branchingBit if equal.
 
 Find the highest bit not set in
@@ -182,6 +189,7 @@ lcp x y =
 signBit : Int
 signBit =
   highestBitSet -1
+
 
 isBranchingBitSet : KeyPrefix -> Int -> Bool
 isBranchingBitSet p =
@@ -464,7 +472,9 @@ determineBranchRelation l r =
   let
     lp = l.prefix
     rp = r.prefix
-    mask = highestBitSet (max lp.branchingBit rp.branchingBit) -- this is the region where we want to force different bits
+    mask = 
+      -- this is the region where we want to force different bits
+      highestBitSet (mostSignificantBranchingBit lp.branchingBit rp.branchingBit) 
     modifiedRightPrefix = combineBits rp.prefixBits (Bitwise.complement lp.prefixBits) mask
     prefix = lcp lp.prefixBits modifiedRightPrefix -- l.prefixBits and modifiedRightPrefix are guaranteed to be different
     childEdge prefix c =
