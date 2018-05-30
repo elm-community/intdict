@@ -52,6 +52,7 @@ safeWrapper : Int -> (() -> a) -> SafeKeyResult a
 safeWrapper k f =
     if not (isValidKey k) then
         Err InvalidKey
+
     else
         Ok (f ())
 

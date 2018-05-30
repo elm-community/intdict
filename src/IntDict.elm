@@ -246,6 +246,7 @@ mostSignificantBranchingBit : Int -> Int -> Int
 mostSignificantBranchingBit a b =
     if a == signBit || b == signBit then
         signBit
+
     else
         max a b
 
@@ -265,11 +266,8 @@ Find the highest bit not set in
 lcp : Int -> Int -> KeyPrefix
 lcp x y =
     let
-        diff =
-            Bitwise.xor x y
-
         branchingBit =
-            highestBitSet diff
+            highestBitSet (Bitwise.xor x y)
 
         mask =
             higherBitMask branchingBit
@@ -357,6 +355,7 @@ update key alter dict =
                 -- if so, r will be the right child
             then
                 inner prefix l r
+
             else
                 inner prefix r l
     in
@@ -368,6 +367,7 @@ update key alter dict =
             if l.key == key then
                 alteredNode (Just l.value)
                 -- This updates or removes the leaf with the same key
+
             else
                 join ( key, alteredNode Nothing ) ( l.key, dict )
 
@@ -376,8 +376,10 @@ update key alter dict =
             if prefixMatches i.prefix key then
                 if isBranchingBitSet i.prefix key then
                     inner i.prefix i.left (update key alter i.right)
+
                 else
                     inner i.prefix (update key alter i.left) i.right
+
             else
                 -- we have to join a new leaf with the current diverging Inner node
                 join ( key, alteredNode Nothing ) ( i.prefix.prefixBits, dict )
@@ -439,18 +441,21 @@ get key dict =
         Leaf l ->
             if l.key == key then
                 Just l.value
+
             else
                 Nothing
 
         Inner i ->
             if not (prefixMatches i.prefix key) then
                 Nothing
+
             else if
                 -- continue in left or right branch
                 isBranchingBitSet i.prefix key
             then
                 -- depending on whether the branching
                 get key i.right
+
             else
                 -- bit is set in the key
                 get key i.left
@@ -461,14 +466,15 @@ get key dict =
 before : Int -> IntDict v -> Maybe ( Int, v )
 before key dict =
     let
-        go def dict =
-            case dict of
+        go def currentDict =
+            case currentDict of
                 Empty ->
                     findMax def
 
                 Leaf l ->
                     if l.key >= key then
                         findMax def
+
                     else
                         Just ( l.key, l.value )
 
@@ -476,11 +482,14 @@ before key dict =
                     if not (prefixMatches i.prefix key) then
                         if i.prefix.prefixBits > key then
                             findMax def
+
                         else
                             -- right must always be non-empty
                             findMax i.right
+
                     else if isBranchingBitSet i.prefix key then
                         go i.left i.right
+
                     else
                         go def i.left
     in
@@ -492,14 +501,15 @@ before key dict =
 after : Int -> IntDict v -> Maybe ( Int, v )
 after key dict =
     let
-        go def dict =
-            case dict of
+        go def currentDict =
+            case currentDict of
                 Empty ->
                     findMin def
 
                 Leaf l ->
                     if l.key <= key then
                         findMin def
+
                     else
                         Just ( l.key, l.value )
 
@@ -507,11 +517,14 @@ after key dict =
                     if not (prefixMatches i.prefix key) then
                         if i.prefix.prefixBits < key then
                             findMin def
+
                         else
                             -- left must always be non-empty
                             findMin i.left
+
                     else if isBranchingBitSet i.prefix key then
                         go def i.right
+
                     else
                         go i.right i.left
     in
@@ -560,6 +573,7 @@ filter predicate dict =
         add k v d =
             if predicate k v then
                 insert k v d
+
             else
                 d
     in
@@ -623,6 +637,7 @@ partition predicate dict =
         add key value ( l, r ) =
             if predicate key value then
                 ( insert key value l, r )
+
             else
                 ( l, insert key value r )
     in
@@ -683,18 +698,22 @@ determineBranchRelation l r =
             lcp lp.prefixBits modifiedRightPrefix
 
         -- l.prefixBits and modifiedRightPrefix are guaranteed to be different
-        childEdge prefix c =
-            if isBranchingBitSet prefix c.prefix.prefixBits then
+        childEdge branchPrefix c =
+            if isBranchingBitSet branchPrefix c.prefix.prefixBits then
                 Right
+
             else
                 Left
     in
     if lp == rp then
         SamePrefix
+
     else if prefix == lp then
         Parent Left (childEdge l.prefix r)
+
     else if prefix == rp then
         Parent Right (childEdge r.prefix l)
+
     else
         Disjunct prefix (childEdge prefix l)
 
@@ -707,17 +726,18 @@ uniteWith merger l r =
     let
         mergeWith key left right =
             case ( left, right ) of
-                ( Just l, Just r ) ->
-                    Just (merger key l r)
+                ( Just l2, Just r2 ) ->
+                    Just (merger key l2 r2)
 
-                ( Just l, _ ) ->
+                ( Just _, _ ) ->
                     left
 
-                ( _, Just r ) ->
+                ( _, Just _ ) ->
                     right
 
                 ( Nothing, Nothing ) ->
-                    Debug.crash "IntDict.uniteWith: mergeWith was called with 2 Nothings. This is a bug in the implementation, please file a bug report!"
+                    -- This is a bug in the implementation, please file a bug report!
+                    Nothing
     in
     case ( l, r ) of
         ( Empty, _ ) ->
@@ -726,11 +746,11 @@ uniteWith merger l r =
         ( _, Empty ) ->
             l
 
-        ( Leaf l, _ ) ->
-            update l.key (\r_ -> mergeWith l.key (Just l.value) r_) r
+        ( Leaf l2, _ ) ->
+            update l2.key (\r_ -> mergeWith l2.key (Just l2.value) r_) r
 
-        ( _, Leaf r ) ->
-            update r.key (\l_ -> mergeWith r.key l_ (Just r.value)) l
+        ( _, Leaf r2 ) ->
+            update r2.key (\l_ -> mergeWith r2.key l_ (Just r2.value)) l
 
         ( Inner il, Inner ir ) ->
             case determineBranchRelation il ir of
@@ -789,6 +809,7 @@ intersect l r =
         ( Leaf ll, _ ) ->
             if member ll.key r then
                 l
+
             else
                 Empty
 
@@ -840,6 +861,7 @@ diff l r =
         ( Leaf ll, _ ) ->
             if member ll.key r then
                 Empty
+
             else
                 l
 
@@ -919,21 +941,21 @@ merge left both right l r acc =
         ( _, Empty ) ->
             foldl left acc l
 
-        ( Leaf l, _ ) ->
-            case get l.key r of
+        ( Leaf l2, _ ) ->
+            case get l2.key r of
                 Nothing ->
-                    m Empty r (left l.key l.value acc)
+                    m Empty r (left l2.key l2.value acc)
 
                 Just v ->
-                    m Empty (remove l.key r) (both l.key l.value v acc)
+                    m Empty (remove l2.key r) (both l2.key l2.value v acc)
 
-        ( _, Leaf r ) ->
-            case get r.key l of
+        ( _, Leaf r2 ) ->
+            case get r2.key l of
                 Nothing ->
-                    m l Empty (right r.key r.value acc)
+                    m l Empty (right r2.key r2.value acc)
 
                 Just v ->
-                    m (remove r.key l) Empty (both r.key v r.value acc)
+                    m (remove r2.key l) Empty (both r2.key v r2.value acc)
 
         ( Inner il, Inner ir ) ->
             case determineBranchRelation il ir of
@@ -990,7 +1012,7 @@ toList dict =
 -}
 fromList : List ( Int, v ) -> IntDict v
 fromList pairs =
-    List.foldl (uncurry insert) empty pairs
+    List.foldl (\( a, b ) -> insert a b) empty pairs
 
 
 
@@ -998,8 +1020,13 @@ fromList pairs =
 
 
 {-| Generates a string representation similar to what `toString`
-generates for `Dict`.
+generates for `Dict`. You must provide a function to convert
+your value type into a string.
 -}
-toString : IntDict v -> String
-toString dict =
-    "IntDict.fromList " ++ Basics.toString (toList dict)
+toString : IntDict v -> (v -> String) -> String
+toString dict valueToStr =
+    let
+        pairToStr (k,v) =
+            "(" ++ String.fromInt k ++ ", \"" ++ valueToStr v ++ "\")"
+    in
+    "IntDict.fromList " ++ (String.join ", " (List.map pairToStr (toList dict)))
