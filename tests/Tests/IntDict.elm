@@ -1,4 +1,4 @@
-module Tests.IntDict exposing (..)
+module Tests.IntDict exposing (build, combine, merge, moreNumbers, numbers, query, regressions, transform)
 
 {-| Copied and modified from `Dict`s test suite.
 -}

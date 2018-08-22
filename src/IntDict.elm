@@ -1,36 +1,12 @@
-module IntDict
-    exposing
-        ( IntDict
-        , after
-        , before
-        , diff
-        , empty
-        , filter
-        , findMax
-        , findMin
-        , foldl
-        , foldr
-        , fromList
-        , get
-        , insert
-        , intersect
-        , isEmpty
-        , isValidKey
-        , keys
-        , map
-        , member
-        , merge
-        , partition
-        , remove
-        , singleton
-        , size
-        , toList
-        , toString
-        , union
-        , uniteWith
-        , update
-        , values
-        )
+module IntDict exposing
+    ( IntDict, isValidKey
+    , empty, singleton, insert, update, remove
+    , isEmpty, size, member, get, before, after, findMin, findMax
+    , uniteWith, union, intersect, diff, merge
+    , keys, values, toList, fromList
+    , map, foldl, foldr, filter, partition
+    , toString
+    )
 
 {-|
 
@@ -255,6 +231,7 @@ mostSignificantBranchingBit a b =
 Returns 0 as branchingBit if equal.
 
 Find the highest bit not set in
+
 
     diff =
         x `xor` y
@@ -1026,7 +1003,7 @@ your value type into a string.
 toString : IntDict v -> (v -> String) -> String
 toString dict valueToStr =
     let
-        pairToStr (k,v) =
+        pairToStr ( k, v ) =
             "(" ++ String.fromInt k ++ ", \"" ++ valueToStr v ++ "\")"
     in
-    "IntDict.fromList " ++ (String.join ", " (List.map pairToStr (toList dict)))
+    "IntDict.fromList " ++ String.join ", " (List.map pairToStr (toList dict))

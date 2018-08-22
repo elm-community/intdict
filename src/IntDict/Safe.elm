@@ -1,13 +1,8 @@
-module IntDict.Safe
-    exposing
-        ( InvalidKey(..)
-        , SafeKeyResult
-        , safeGet
-        , safeInsert
-        , safeMember
-        , safeRemove
-        , safeUpdate
-        )
+module IntDict.Safe exposing
+    ( InvalidKey(..), SafeKeyResult
+    , safeInsert, safeUpdate, safeRemove
+    , safeMember, safeGet
+    )
 
 {-| Safe API wrappers for `IntDict`s build and query operators
 to prevent integer overflows with JavaScripts number type.
