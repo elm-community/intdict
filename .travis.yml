@@ -2,7 +2,7 @@ language: node_js
 node_js:
 - "5"
 install:
-- npm install -g elm
+- npm install -g elm@0.19.0
 - npm install -g elm-format@0.8.0
 - npm install -g elm-test
 - elm-package install -y
