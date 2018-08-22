@@ -76,7 +76,6 @@ Dictionary equality with `(==)` is unreliable and should not be used.
 -}
 
 import Bitwise
-import Debug
 import List
 import Maybe exposing (Maybe(..))
 
