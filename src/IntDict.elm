@@ -4,7 +4,7 @@ module IntDict exposing
     , isEmpty, size, member, get, before, after, findMin, findMax
     , uniteWith, union, intersect, diff, merge
     , keys, values, toList, fromList
-    , map, foldl, foldr, filter, partition
+    , map, foldl, foldr, filter, partition, split
     , toString
     )
 
@@ -66,7 +66,7 @@ Dictionary equality with `(==)` is unreliable and should not be used.
 
 # Transform
 
-@docs map, foldl, foldr, filter, partition
+@docs map, foldl, foldr, filter, partition, split
 
 
 # String representation
@@ -234,7 +234,6 @@ Find the highest bit not set in
 
     diff =
         x `xor` y
-
 
     -- 0b011001 `xor` 0b011010 = 0b000011
 
@@ -618,6 +617,46 @@ partition predicate dict =
                 ( l, insert key value r )
     in
     foldl add ( empty, empty ) dict
+
+
+{-| Split a dictionary around a pivot key. The first dictionary contains
+values whose key is less than the pivot, the second dictionary all values
+greater or equal the pivot.
+-}
+split : Int -> IntDict v -> ( IntDict v, IntDict v )
+split key dict =
+    case dict of
+        Empty ->
+            ( empty, empty )
+
+        Leaf l ->
+            if l.key < key then
+                ( dict, empty )
+
+            else
+                ( empty, dict )
+
+        Inner i ->
+            if prefixMatches i.prefix key then
+                if isBranchingBitSet i.prefix key then
+                    let
+                        ( lt, ge ) =
+                            split key i.right
+                    in
+                    ( union i.left lt, ge )
+
+                else
+                    let
+                        ( lt, ge ) =
+                            split key i.left
+                    in
+                    ( lt, union ge i.right )
+
+            else if i.prefix.prefixBits < key then
+                ( dict, empty )
+
+            else
+                ( empty, dict )
 
 
 
