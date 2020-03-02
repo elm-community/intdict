@@ -235,6 +235,7 @@ Find the highest bit not set in
     diff =
         x `xor` y
 
+
     -- 0b011001 `xor` 0b011010 = 0b000011
 
 -}
