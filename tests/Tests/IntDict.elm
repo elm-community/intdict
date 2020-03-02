@@ -207,8 +207,8 @@ split =
                     (IntDict.split key dict |> toLists)
         , test "split on special case" <|
             \() ->
-                Expect.equal ([(-1,-1),(0,0)],[])
-                    (IntDict.split 2147483648 (IntDict.fromList [ ( -1, -1 ), ( 0, 0 )]) |> toLists)
+                Expect.equal ( [ ( -1, -1 ), ( 0, 0 ) ], [] )
+                    (IntDict.split 2147483648 (IntDict.fromList [ ( -1, -1 ), ( 0, 0 ) ]) |> toLists)
         ]
 
 
