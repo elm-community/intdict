@@ -144,6 +144,19 @@ merge =
         ]
 
 
+maxInt =
+    2 ^ 31 - 1
+
+
+minInt =
+    -(2 ^ 31)
+
+
+validKey : Fuzz.Fuzzer Int
+validKey =
+    Fuzz.intRange minInt maxInt
+
+
 randomDict : Fuzz.Fuzzer (IntDict Int)
 randomDict =
     Fuzz.list Fuzz.int
@@ -194,7 +207,7 @@ split =
             \() ->
                 Expect.equal ( [ ( -10, -10 ), ( 0, 0 ), ( 1, 1 ), ( 2, 2 ), ( 3, 3 ) ], [ ( 100, 100 ) ] )
                     (IntDict.split 5 s2 |> toLists)
-        , fuzz2 Fuzz.int randomDict "split on random dictionaries" <|
+        , fuzz2 validKey randomDict "split on random dictionaries" <|
             \key dict ->
                 let
                     items =
@@ -205,16 +218,12 @@ split =
                 in
                 Expect.equal ( expectedLessThan, expectedGreaterEq )
                     (IntDict.split key dict |> toLists)
-        , test "split on special case" <|
-            \() ->
-                Expect.equal ( [ ( -1, -1 ), ( 0, 0 ) ], [] )
-                    (IntDict.split 2147483648 (IntDict.fromList [ ( -1, -1 ), ( 0, 0 ) ]) |> toLists)
         ]
 
 
 orderedTuple : Fuzz.Fuzzer ( Int, Int )
 orderedTuple =
-    Fuzz.tuple ( Fuzz.int, Fuzz.int )
+    Fuzz.tuple ( validKey, validKey )
         |> Fuzz.map (\( a, b ) -> ( min a b, max a b ))
 
 

@@ -623,6 +623,18 @@ partition predicate dict =
 {-| Split a dictionary around a pivot key. The first dictionary contains
 values whose key is less than the pivot, the second dictionary all values
 greater or equal the pivot.
+
+
+    dict =
+        fromList [ ( 0, "a" ), ( 1, "b" ), ( 2, "c" ), ( 5, "d" ) ]
+
+    ( lower, higher ) =
+        split 2 dict
+
+
+    -- toList lower == [ (0, "a"), (1, "b") ]
+    -- toList higher == [ (2, "c"), (5, "d") ]
+
 -}
 split : Int -> IntDict v -> ( IntDict v, IntDict v )
 split key dict =
@@ -662,6 +674,17 @@ split key dict =
 
 {-| Extract a range of keys. The returned dictionary has only items whose keys
 are between low (inclusive) and high (exclusive).
+
+
+    dict =
+        fromList [ ( 0, "a" ), ( 1, "b" ), ( 2, "c" ), ( 5, "d" ) ]
+
+    inRange =
+        range 1 5 dict
+
+
+    -- toList inRange == [ (1, "b"), (2, "c") ]
+
 -}
 range : Int -> Int -> IntDict v -> IntDict v
 range low high dict =
