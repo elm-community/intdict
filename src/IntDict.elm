@@ -4,7 +4,7 @@ module IntDict exposing
     , isEmpty, size, member, get, before, after, findMin, findMax
     , uniteWith, union, intersect, diff, merge
     , keys, values, toList, fromList
-    , map, foldl, foldr, filter, partition, split
+    , map, foldl, foldr, filter, partition, split, range
     , toString
     )
 
@@ -66,7 +66,7 @@ Dictionary equality with `(==)` is unreliable and should not be used.
 
 # Transform
 
-@docs map, foldl, foldr, filter, partition, split
+@docs map, foldl, foldr, filter, partition, split, range
 
 
 # String representation
@@ -658,6 +658,27 @@ split key dict =
 
             else
                 ( empty, dict )
+
+
+{-| Extract a range of keys. The returned dictionary has only items whose keys
+are between low (inclusive) and high (exclusive).
+-}
+range : Int -> Int -> IntDict v -> IntDict v
+range low high dict =
+    let
+        low_ =
+            min low high
+
+        high_ =
+            max low high
+
+        ( lessThanHigh, _ ) =
+            split high_ dict
+
+        ( _, greaterThanLow ) =
+            split low_ lessThanHigh
+    in
+    greaterThanLow
 
 
 

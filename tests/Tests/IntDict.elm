@@ -1,4 +1,4 @@
-module Tests.IntDict exposing (build, combine, merge, moreNumbers, numbers, query, regressions, split, transform)
+module Tests.IntDict exposing (build, combine, merge, moreNumbers, numbers, query, range, regressions, split, transform)
 
 {-| Copied and modified from `Dict`s test suite.
 -}
@@ -209,6 +209,28 @@ split =
             \() ->
                 Expect.equal ( [ ( -1, -1 ), ( 0, 0 ) ], [] )
                     (IntDict.split 2147483648 (IntDict.fromList [ ( -1, -1 ), ( 0, 0 ) ]) |> toLists)
+        ]
+
+
+orderedTuple : Fuzz.Fuzzer ( Int, Int )
+orderedTuple =
+    Fuzz.tuple ( Fuzz.int, Fuzz.int )
+        |> Fuzz.map (\( a, b ) -> ( min a b, max a b ))
+
+
+range : Test
+range =
+    describe "range" <|
+        [ fuzz2 orderedTuple randomDict "range on random dictionaries" <|
+            \( low, high ) dict ->
+                let
+                    items =
+                        IntDict.toList dict
+
+                    expected =
+                        List.filter (\( a, _ ) -> a >= low && a < high) items
+                in
+                Expect.equal expected (IntDict.range low high dict |> IntDict.toList)
         ]
 
 
