@@ -4,7 +4,7 @@ module IntDict exposing
     , isEmpty, size, member, get, before, after, findMin, findMax
     , uniteWith, union, intersect, diff, merge
     , keys, values, toList, fromList
-    , map, foldl, foldr, filter, partition
+    , map, foldl, foldr, filter, partition, split, range
     , toString
     )
 
@@ -66,7 +66,7 @@ Dictionary equality with `(==)` is unreliable and should not be used.
 
 # Transform
 
-@docs map, foldl, foldr, filter, partition
+@docs map, foldl, foldr, filter, partition, split, range
 
 
 # String representation
@@ -618,6 +618,90 @@ partition predicate dict =
                 ( l, insert key value r )
     in
     foldl add ( empty, empty ) dict
+
+
+{-| Split a dictionary around a pivot key. The first dictionary contains
+values whose key is less than the pivot, the second dictionary all values
+greater or equal the pivot.
+
+
+    dict =
+        fromList [ ( 0, "a" ), ( 1, "b" ), ( 2, "c" ), ( 5, "d" ) ]
+
+    ( lower, higher ) =
+        split 2 dict
+
+
+    -- toList lower == [ (0, "a"), (1, "b") ]
+    -- toList higher == [ (2, "c"), (5, "d") ]
+
+-}
+split : Int -> IntDict v -> ( IntDict v, IntDict v )
+split key dict =
+    case dict of
+        Empty ->
+            ( empty, empty )
+
+        Leaf l ->
+            if l.key < key then
+                ( dict, empty )
+
+            else
+                ( empty, dict )
+
+        Inner i ->
+            if prefixMatches i.prefix key then
+                if isBranchingBitSet i.prefix key then
+                    let
+                        ( lt, ge ) =
+                            split key i.right
+                    in
+                    ( union i.left lt, ge )
+
+                else
+                    let
+                        ( lt, ge ) =
+                            split key i.left
+                    in
+                    ( lt, union ge i.right )
+
+            else if i.prefix.prefixBits < key then
+                ( dict, empty )
+
+            else
+                ( empty, dict )
+
+
+{-| Extract a range of keys. The returned dictionary has only items whose keys
+are between low (inclusive) and high (exclusive).
+
+
+    dict =
+        fromList [ ( 0, "a" ), ( 1, "b" ), ( 2, "c" ), ( 5, "d" ) ]
+
+    inRange =
+        range 1 5 dict
+
+
+    -- toList inRange == [ (1, "b"), (2, "c") ]
+
+-}
+range : Int -> Int -> IntDict v -> IntDict v
+range low high dict =
+    let
+        low_ =
+            min low high
+
+        high_ =
+            max low high
+
+        ( lessThanHigh, _ ) =
+            split high_ dict
+
+        ( _, greaterThanLow ) =
+            split low_ lessThanHigh
+    in
+    greaterThanLow
 
 
 

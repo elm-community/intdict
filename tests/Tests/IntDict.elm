@@ -1,13 +1,16 @@
-module Tests.IntDict exposing (build, combine, merge, moreNumbers, numbers, query, regressions, transform)
+module Tests.IntDict exposing (build, combine, merge, moreNumbers, numbers, query, range, regressions, split, transform)
 
 {-| Copied and modified from `Dict`s test suite.
 -}
 
 import Basics exposing (..)
 import Expect
+import Fuzz
 import IntDict exposing (IntDict)
 import List
 import Maybe exposing (..)
+import Random
+import Shrink
 import Test exposing (..)
 
 
@@ -140,6 +143,101 @@ merge =
             \() ->
                 Expect.equal bExpected
                     (IntDict.merge IntDict.insert insertBoth IntDict.insert b1 b2 IntDict.empty |> IntDict.toList)
+        ]
+
+
+randomValidKey : Random.Generator Int
+randomValidKey =
+    Random.int Random.minInt Random.maxInt
+
+
+validKey : Fuzz.Fuzzer Int
+validKey =
+    Fuzz.custom randomValidKey (Shrink.keepIf IntDict.isValidKey Shrink.int)
+
+
+randomDict : Fuzz.Fuzzer (IntDict Int)
+randomDict =
+    Fuzz.list validKey
+        |> Fuzz.map (List.map (\x -> ( x, x )))
+        |> Fuzz.map IntDict.fromList
+
+
+split : Test
+split =
+    let
+        empty =
+            IntDict.empty
+
+        s1 =
+            IntDict.fromList [ ( 1, 1 ), ( 2, 2 ) ]
+
+        s2 =
+            IntDict.fromList [ ( 1, 1 ), ( 2, 2 ), ( 3, 3 ), ( 100, 100 ), ( -10, -10 ), ( 0, 0 ) ]
+
+        toLists ( d1, d2 ) =
+            ( IntDict.toList d1, IntDict.toList d2 )
+    in
+    describe "split" <|
+        [ test "split empty" <|
+            \() ->
+                Expect.equal ( IntDict.empty, IntDict.empty ) (IntDict.split 1 empty)
+        , test "split under" <|
+            \() ->
+                Expect.equal ( IntDict.empty, s1 ) (IntDict.split 1 s1)
+        , test "split over" <|
+            \() ->
+                Expect.equal ( s1, IntDict.empty ) (IntDict.split 3 s1)
+        , test "split in middle" <|
+            \() ->
+                Expect.equal ( IntDict.fromList [ ( 1, 1 ) ], IntDict.fromList [ ( 2, 2 ) ] ) (IntDict.split 2 s1)
+
+        -- This is a good candidate for fuzz testing
+        , test "split larger dict" <|
+            \() ->
+                Expect.equal ( IntDict.fromList [ ( -10, -10 ) ], IntDict.fromList [ ( 0, 0 ), ( 1, 1 ), ( 2, 2 ), ( 3, 3 ), ( 100, 100 ) ] )
+                    (IntDict.split 0 s2)
+        , test "split on missing key continuous dict" <|
+            \() ->
+                Expect.equal ( [ ( 0, 0 ), ( 1, 1 ) ], [ ( 2, 2 ), ( 3, 3 ) ] )
+                    (IntDict.split 2 (IntDict.fromList [ ( 0, 0 ), ( 1, 1 ), ( 2, 2 ), ( 3, 3 ) ]) |> toLists)
+        , test "split on missing key" <|
+            \() ->
+                Expect.equal ( [ ( -10, -10 ), ( 0, 0 ), ( 1, 1 ), ( 2, 2 ), ( 3, 3 ) ], [ ( 100, 100 ) ] )
+                    (IntDict.split 5 s2 |> toLists)
+        , fuzz2 validKey randomDict "split on random dictionaries" <|
+            \key dict ->
+                let
+                    items =
+                        IntDict.toList dict
+
+                    ( expectedLessThan, expectedGreaterEq ) =
+                        List.partition (\( a, _ ) -> a < key) items
+                in
+                Expect.equal ( expectedLessThan, expectedGreaterEq )
+                    (IntDict.split key dict |> toLists)
+        ]
+
+
+orderedTuple : Fuzz.Fuzzer ( Int, Int )
+orderedTuple =
+    Fuzz.tuple ( validKey, validKey )
+        |> Fuzz.map (\( a, b ) -> ( min a b, max a b ))
+
+
+range : Test
+range =
+    describe "range" <|
+        [ fuzz2 orderedTuple randomDict "range on random dictionaries" <|
+            \( low, high ) dict ->
+                let
+                    items =
+                        IntDict.toList dict
+
+                    expected =
+                        List.filter (\( a, _ ) -> a >= low && a < high) items
+                in
+                Expect.equal expected (IntDict.range low high dict |> IntDict.toList)
         ]
 
 
