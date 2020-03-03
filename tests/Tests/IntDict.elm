@@ -9,6 +9,8 @@ import Fuzz
 import IntDict exposing (IntDict)
 import List
 import Maybe exposing (..)
+import Random
+import Shrink
 import Test exposing (..)
 
 
@@ -144,23 +146,27 @@ merge =
         ]
 
 
-maxInt =
-    2 ^ 31 - 1
+randomValidKey : Random.Generator Int
+randomValidKey =
+    Random.int Random.minInt Random.maxInt
+        |> Random.andThen
+            (\key ->
+                if IntDict.isValidKey key then
+                    Random.constant key
 
-
-minInt =
-    -(2 ^ 31)
+                else
+                    randomValidKey
+            )
 
 
 validKey : Fuzz.Fuzzer Int
 validKey =
-    Fuzz.intRange minInt maxInt
+    Fuzz.custom randomValidKey (Shrink.keepIf IntDict.isValidKey Shrink.int)
 
 
 randomDict : Fuzz.Fuzzer (IntDict Int)
 randomDict =
-    Fuzz.list Fuzz.int
-        |> Fuzz.map (List.filter IntDict.isValidKey)
+    Fuzz.list validKey
         |> Fuzz.map (List.map (\x -> ( x, x )))
         |> Fuzz.map IntDict.fromList
 
