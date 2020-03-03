@@ -149,14 +149,6 @@ merge =
 randomValidKey : Random.Generator Int
 randomValidKey =
     Random.int Random.minInt Random.maxInt
-        |> Random.andThen
-            (\key ->
-                if IntDict.isValidKey key then
-                    Random.constant key
-
-                else
-                    randomValidKey
-            )
 
 
 validKey : Fuzz.Fuzzer Int
