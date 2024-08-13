@@ -647,7 +647,6 @@ greater or equal the pivot.
     ( lower, higher ) =
         split 2 dict
 
-
     -- toList lower == [ (0, "a"), (1, "b") ]
     -- toList higher == [ (2, "c"), (5, "d") ]
 
@@ -697,7 +696,6 @@ are between low (inclusive) and high (exclusive).
 
     inRange =
         range 1 5 dict
-
 
     -- toList inRange == [ (1, "b"), (2, "c") ]
 
