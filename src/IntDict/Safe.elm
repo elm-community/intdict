@@ -27,7 +27,7 @@ the validity of the key via `IntDict.isValidKey`.
 
 -}
 
-import IntDict exposing (..)
+import IntDict exposing (IntDict)
 
 
 {-| An error type signaling an invalid key.
@@ -45,7 +45,7 @@ type alias SafeKeyResult a =
 
 safeWrapper : Int -> (() -> a) -> SafeKeyResult a
 safeWrapper k f =
-    if not (isValidKey k) then
+    if not (IntDict.isValidKey k) then
         Err InvalidKey
 
     else
@@ -56,32 +56,32 @@ safeWrapper k f =
 -}
 safeInsert : Int -> v -> IntDict v -> SafeKeyResult (IntDict v)
 safeInsert k v dict =
-    safeWrapper k <| \() -> insert k v dict
+    safeWrapper k <| \() -> IntDict.insert k v dict
 
 
 {-| Version of `IntDict.remove` that validates the key.
 -}
 safeRemove : Int -> IntDict v -> SafeKeyResult (IntDict v)
 safeRemove k dict =
-    safeWrapper k <| \() -> remove k dict
+    safeWrapper k <| \() -> IntDict.remove k dict
 
 
 {-| Version of `IntDict.update` that validates the key.
 -}
 safeUpdate : Int -> (Maybe v -> Maybe v) -> IntDict v -> SafeKeyResult (IntDict v)
 safeUpdate k alter dict =
-    safeWrapper k <| \() -> update k alter dict
+    safeWrapper k <| \() -> IntDict.update k alter dict
 
 
 {-| Version of `IntDict.get` that validates the key.
 -}
 safeGet : Int -> IntDict v -> SafeKeyResult (Maybe v)
 safeGet k dict =
-    safeWrapper k <| \() -> get k dict
+    safeWrapper k <| \() -> IntDict.get k dict
 
 
 {-| Version of `IntDict.member` that validates the key.
 -}
 safeMember : Int -> IntDict v -> SafeKeyResult Bool
 safeMember k dict =
-    safeWrapper k <| \() -> member k dict
+    safeWrapper k <| \() -> IntDict.member k dict
