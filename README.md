@@ -1,4 +1,4 @@
-# IntDict [![Build Status](https://travis-ci.org/elm-community/intdict.svg)](https://travis-ci.org/elm-community/intdict)
+# IntDict
 
 `IntDict` is an optimized version of a `Dict` with `Int` as key type. 
 
