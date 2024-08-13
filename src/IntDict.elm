@@ -191,21 +191,27 @@ For implementation notes, see [this](<http://aggregate.org/MAGIC/#Most> Signific
 highestBitSet : Int -> Int
 highestBitSet n =
     let
+        shiftOr : Int -> Int -> Int
         shiftOr i shift =
             Bitwise.or i (Bitwise.shiftRightZfBy shift i)
 
+        n1 : Int
         n1 =
             shiftOr n 1
 
+        n2 : Int
         n2 =
             shiftOr n1 2
 
+        n3 : Int
         n3 =
             shiftOr n2 4
 
+        n4 : Int
         n4 =
             shiftOr n3 8
 
+        n5 : Int
         n5 =
             shiftOr n4 16
 
@@ -241,12 +247,15 @@ Find the highest bit not set in
 lcp : Int -> Int -> KeyPrefix
 lcp x y =
     let
+        branchingBit : Int
         branchingBit =
             highestBitSet (Bitwise.xor x y)
 
+        mask : Int
         mask =
             higherBitMask branchingBit
 
+        prefixBits : Int
         prefixBits =
             Bitwise.and x mask
 
@@ -310,6 +319,7 @@ remove key dict =
 update : Int -> (Maybe v -> Maybe v) -> IntDict v -> IntDict v
 update key alter dict =
     let
+        alteredNode : Maybe v -> IntDict v
         alteredNode mv =
             case alter mv of
                 -- handle this centrally
@@ -320,9 +330,11 @@ update key alter dict =
                     empty
 
         -- The inner constructor will do the rest
+        join : ( Int, IntDict v ) -> ( Int, IntDict v ) -> IntDict v
         join ( k1, l ) ( k2, r ) =
             -- precondition: k1 /= k2
             let
+                prefix : KeyPrefix
                 prefix =
                     lcp k1 k2
             in
@@ -442,6 +454,7 @@ get key dict =
 before : Int -> IntDict v -> Maybe ( Int, v )
 before key dict =
     let
+        go : IntDict v -> IntDict v -> Maybe ( Int, v )
         go def currentDict =
             case currentDict of
                 Empty ->
@@ -477,6 +490,7 @@ before key dict =
 after : Int -> IntDict v -> Maybe ( Int, v )
 after key dict =
     let
+        go : IntDict v -> IntDict v -> Maybe ( Int, v )
         go def currentDict =
             case currentDict of
                 Empty ->
@@ -546,6 +560,7 @@ findMax dict =
 filter : (Int -> v -> Bool) -> IntDict v -> IntDict v
 filter predicate dict =
     let
+        add : Int -> v -> IntDict v -> IntDict v
         add k v d =
             if predicate k v then
                 insert k v d
@@ -610,6 +625,7 @@ contains the rest.
 partition : (Int -> v -> Bool) -> IntDict v -> ( IntDict v, IntDict v )
 partition predicate dict =
     let
+        add : Int -> v -> ( IntDict v, IntDict v ) -> ( IntDict v, IntDict v )
         add key value ( l, r ) =
             if predicate key value then
                 ( insert key value l, r )
@@ -689,9 +705,11 @@ are between low (inclusive) and high (exclusive).
 range : Int -> Int -> IntDict v -> IntDict v
 range low high dict =
     let
+        low_ : Int
         low_ =
             min low high
 
+        high_ : Int
         high_ =
             max low high
 
@@ -741,23 +759,29 @@ combineBits a b mask =
 determineBranchRelation : InnerType l -> InnerType r -> BranchRelation
 determineBranchRelation l r =
     let
+        lp : KeyPrefix
         lp =
             l.prefix
 
+        rp : KeyPrefix
         rp =
             r.prefix
 
+        mask : Int
         mask =
             -- this is the region where we want to force different bits
             highestBitSet (mostSignificantBranchingBit lp.branchingBit rp.branchingBit)
 
+        modifiedRightPrefix : Int
         modifiedRightPrefix =
             combineBits rp.prefixBits (Bitwise.complement lp.prefixBits) mask
 
+        prefix : KeyPrefix
         prefix =
             lcp lp.prefixBits modifiedRightPrefix
 
         -- l.prefixBits and modifiedRightPrefix are guaranteed to be different
+        childEdge : KeyPrefix -> InnerType q -> Choice
         childEdge branchPrefix c =
             if isBranchingBitSet branchPrefix c.prefix.prefixBits then
                 Right
@@ -784,6 +808,7 @@ is called with the conflicting key, the value from `l` and that from `r`.
 uniteWith : (Int -> v -> v -> v) -> IntDict v -> IntDict v -> IntDict v
 uniteWith merger l r =
     let
+        mergeWith : Int -> Maybe v -> Maybe v -> Maybe v
         mergeWith key left right =
             case ( left, right ) of
                 ( Just l2, Just r2 ) ->
@@ -991,6 +1016,7 @@ merge :
     -> result
 merge left both right l r acc =
     let
+        m : IntDict a -> IntDict b -> result -> result
         m =
             merge left both right
     in
@@ -1086,6 +1112,7 @@ your value type into a string.
 toString : IntDict v -> (v -> String) -> String
 toString dict valueToStr =
     let
+        pairToStr : ( Int, v ) -> String
         pairToStr ( k, v ) =
             "(" ++ String.fromInt k ++ ", \"" ++ valueToStr v ++ "\")"
     in
