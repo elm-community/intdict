@@ -1,4 +1,4 @@
-module Tests.IntDict exposing (build, combine, merge, moreNumbers, numbers, query, range, regressions, split, transform)
+module Tests.IntDict exposing (build, combine, merge, query, range, regressions, split, transform)
 
 {-| Copied and modified from `Dict`s test suite.
 -}
@@ -9,7 +9,6 @@ import Fuzz
 import IntDict exposing (IntDict)
 import List
 import Maybe exposing (..)
-import Random
 import Test exposing (..)
 
 
@@ -30,8 +29,8 @@ build =
         , test "singleton" <| \() -> Expect.equal (IntDict.fromList [ ( 1, "v" ) ]) (IntDict.singleton 1 "v")
         , test "insert" <| \() -> Expect.equal (IntDict.fromList [ ( 1, "v" ) ]) (IntDict.insert 1 "v" IntDict.empty)
         , test "insert replace" <| \() -> Expect.equal (IntDict.fromList [ ( 1, "vv" ) ]) (IntDict.insert 1 "vv" (IntDict.singleton 1 "v"))
-        , test "update" <| \() -> Expect.equal (IntDict.fromList [ ( 1, "vv" ) ]) (IntDict.update 1 (\v -> Just "vv") (IntDict.singleton 1 "v"))
-        , test "update Nothing" <| \() -> Expect.equal IntDict.empty (IntDict.update 1 (\v -> Nothing) (IntDict.singleton 1 "v"))
+        , test "update" <| \() -> Expect.equal (IntDict.fromList [ ( 1, "vv" ) ]) (IntDict.update 1 (\_ -> Just "vv") (IntDict.singleton 1 "v"))
+        , test "update Nothing" <| \() -> Expect.equal IntDict.empty (IntDict.update 1 (\_ -> Nothing) (IntDict.singleton 1 "v"))
         , test "remove" <| \() -> Expect.equal IntDict.empty (IntDict.remove 1 (IntDict.singleton 1 "v"))
         , test "remove not found" <| \() -> Expect.equal (IntDict.singleton 1 "v") (IntDict.remove 342 (IntDict.singleton 1 "v"))
         ]
@@ -92,8 +91,8 @@ combine =
 transform : Test
 transform =
     describe "transform"
-        [ test "filter" <| \() -> Expect.equal (IntDict.singleton 2 "2") (IntDict.filter (\k v -> k == 2) numbers)
-        , test "partition" <| \() -> Expect.equal ( IntDict.singleton 2 "2", IntDict.singleton 3 "3" ) (IntDict.partition (\k v -> k == 2) numbers)
+        [ test "filter" <| \() -> Expect.equal (IntDict.singleton 2 "2") (IntDict.filter (\k _ -> k == 2) numbers)
+        , test "partition" <| \() -> Expect.equal ( IntDict.singleton 2 "2", IntDict.singleton 3 "3" ) (IntDict.partition (\k _ -> k == 2) numbers)
         ]
 
 
