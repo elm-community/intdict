@@ -1,5 +1,9 @@
 # IntDict [![Build Status](https://travis-ci.org/elm-community/intdict.svg)](https://travis-ci.org/elm-community/intdict)
 
+This library is lacking a maintainer. Feel free to step up!
+
+---
+
 `IntDict` is an optimized version of a `Dict` with `Int` as key type. 
 
 Its API is the same as `Dict`'s, so it can be regarded as a drop-in replacement.
