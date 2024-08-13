@@ -122,7 +122,7 @@ If this ever changes, contact me! Certain parts of the implementation depend on 
 isValidKey : Int -> Bool
 isValidKey k =
     -- perform some dirty JS magic to turn the double
-    Bitwise.or k 0 == k
+    Bitwise.or k 0 - k == 0
 
 
 
@@ -182,7 +182,7 @@ higherBitMask branchingBit =
 
 prefixMatches : KeyPrefix -> Int -> Bool
 prefixMatches p n =
-    Bitwise.and n (higherBitMask p.branchingBit) == p.prefixBits
+    Bitwise.and n (higherBitMask p.branchingBit) - p.prefixBits == 0
 
 
 {-| Clear all bits other than the highest in n.
@@ -219,7 +219,7 @@ highestBitSet n =
 
 mostSignificantBranchingBit : Int -> Int -> Int
 mostSignificantBranchingBit a b =
-    if a == signBit || b == signBit then
+    if a - signBit == 0 || b - signBit == 0 then
         signBit
 
     else
@@ -234,7 +234,6 @@ Find the highest bit not set in
 
     diff =
         x `xor` y
-
 
     -- 0b011001 `xor` 0b011010 = 0b000011
 
@@ -264,11 +263,12 @@ signBit =
 
 
 isBranchingBitSet : KeyPrefix -> Int -> Bool
-isBranchingBitSet p =
-    Bitwise.xor signBit
+isBranchingBitSet p i =
+    i
+        |> Bitwise.xor signBit
         -- This is a hack that fixes the ordering of keys.
-        >> Bitwise.and p.branchingBit
-        >> (/=) 0
+        |> Bitwise.and p.branchingBit
+        |> (/=) 0
 
 
 
@@ -340,7 +340,7 @@ update key alter dict =
             alteredNode Nothing
 
         Leaf l ->
-            if l.key == key then
+            if l.key - key == 0 then
                 alteredNode (Just l.value)
                 -- This updates or removes the leaf with the same key
 
@@ -415,7 +415,7 @@ get key dict =
             Nothing
 
         Leaf l ->
-            if l.key == key then
+            if l.key - key == 0 then
                 Just l.value
 
             else
@@ -765,13 +765,13 @@ determineBranchRelation l r =
             else
                 Left
     in
-    if lp == rp then
+    if lp.prefixBits - rp.prefixBits == 0 && lp.branchingBit - rp.branchingBit == 0 then
         SamePrefix
 
-    else if prefix == lp then
+    else if prefix.prefixBits - lp.prefixBits == 0 && prefix.branchingBit - lp.branchingBit == 0 then
         Parent Left (childEdge l.prefix r)
 
-    else if prefix == rp then
+    else if prefix.prefixBits - rp.prefixBits == 0 && prefix.branchingBit - rp.branchingBit == 0 then
         Parent Right (childEdge r.prefix l)
 
     else
