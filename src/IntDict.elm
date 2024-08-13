@@ -142,7 +142,7 @@ inner p l r =
         ( _, Empty ) ->
             l
 
-        ( _, _ ) ->
+        _ ->
             Inner
                 { prefix = p
                 , left = l
@@ -766,40 +766,42 @@ determineBranchRelation l r =
         rp : KeyPrefix
         rp =
             r.prefix
-
-        mask : Int
-        mask =
-            -- this is the region where we want to force different bits
-            highestBitSet (mostSignificantBranchingBit lp.branchingBit rp.branchingBit)
-
-        modifiedRightPrefix : Int
-        modifiedRightPrefix =
-            combineBits rp.prefixBits (Bitwise.complement lp.prefixBits) mask
-
-        prefix : KeyPrefix
-        prefix =
-            lcp lp.prefixBits modifiedRightPrefix
-
-        -- l.prefixBits and modifiedRightPrefix are guaranteed to be different
-        childEdge : KeyPrefix -> InnerType q -> Choice
-        childEdge branchPrefix c =
-            if isBranchingBitSet branchPrefix c.prefix.prefixBits then
-                Right
-
-            else
-                Left
     in
     if lp.prefixBits - rp.prefixBits == 0 && lp.branchingBit - rp.branchingBit == 0 then
         SamePrefix
 
-    else if prefix.prefixBits - lp.prefixBits == 0 && prefix.branchingBit - lp.branchingBit == 0 then
-        Parent Left (childEdge l.prefix r)
-
-    else if prefix.prefixBits - rp.prefixBits == 0 && prefix.branchingBit - rp.branchingBit == 0 then
-        Parent Right (childEdge r.prefix l)
-
     else
-        Disjunct prefix (childEdge prefix l)
+        let
+            mask : Int
+            mask =
+                -- this is the region where we want to force different bits
+                highestBitSet (mostSignificantBranchingBit lp.branchingBit rp.branchingBit)
+
+            modifiedRightPrefix : Int
+            modifiedRightPrefix =
+                combineBits rp.prefixBits (Bitwise.complement lp.prefixBits) mask
+
+            prefix : KeyPrefix
+            prefix =
+                lcp lp.prefixBits modifiedRightPrefix
+
+            -- l.prefixBits and modifiedRightPrefix are guaranteed to be different
+            childEdge : KeyPrefix -> InnerType q -> Choice
+            childEdge branchPrefix c =
+                if isBranchingBitSet branchPrefix c.prefix.prefixBits then
+                    Right
+
+                else
+                    Left
+        in
+        if prefix.prefixBits - lp.prefixBits == 0 && prefix.branchingBit - lp.branchingBit == 0 then
+            Parent Left (childEdge l.prefix r)
+
+        else if prefix.prefixBits - rp.prefixBits == 0 && prefix.branchingBit - rp.branchingBit == 0 then
+            Parent Right (childEdge r.prefix l)
+
+        else
+            Disjunct prefix (childEdge prefix l)
 
 
 {-| `uniteWith merger l r` combines two dictionaries. If there is a collision, `merger`
@@ -876,7 +878,7 @@ to the first dictionary.
 -}
 union : IntDict v -> IntDict v -> IntDict v
 union =
-    uniteWith (\key old new -> old)
+    uniteWith (\_ old _ -> old)
 
 
 {-| Keep a key-value pair when its key appears in the second dictionary.
@@ -1077,14 +1079,14 @@ merge left both right l r acc =
 -}
 keys : IntDict v -> List Int
 keys dict =
-    foldr (\key value keyList -> key :: keyList) [] dict
+    foldr (\key _ keyList -> key :: keyList) [] dict
 
 
 {-| Get all of the values in a dictionary, in the order of their keys.
 -}
 values : IntDict v -> List v
 values dict =
-    foldr (\key value valueList -> value :: valueList) [] dict
+    foldr (\_ value valueList -> value :: valueList) [] dict
 
 
 {-| Convert a dictionary into an association list of key-value pairs, sorted by keys.
