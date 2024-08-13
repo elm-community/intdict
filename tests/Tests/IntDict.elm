@@ -3,13 +3,11 @@ module Tests.IntDict exposing (build, combine, merge, query, range, regressions,
 {-| Copied and modified from `Dict`s test suite.
 -}
 
-import Basics exposing (..)
 import Expect
 import Fuzz
 import IntDict exposing (IntDict)
 import List
-import Maybe exposing (..)
-import Test exposing (..)
+import Test exposing (Test, describe, fuzz2, test)
 
 
 numbers : IntDict String
@@ -99,24 +97,31 @@ transform =
 merge : Test
 merge =
     let
+        insertBoth : Int -> List Int -> List Int -> IntDict (List Int) -> IntDict (List Int)
         insertBoth key leftVal rightVal dict =
             IntDict.insert key (leftVal ++ rightVal) dict
 
+        s1 : IntDict (List Int)
         s1 =
             IntDict.empty |> IntDict.insert 1 [ 1 ]
 
+        s2 : IntDict (List Int)
         s2 =
             IntDict.empty |> IntDict.insert 2 [ 2 ]
 
+        s23 : IntDict (List Int)
         s23 =
             IntDict.empty |> IntDict.insert 2 [ 3 ]
 
+        b1 : IntDict (List Int)
         b1 =
             List.range 1 10 |> List.map (\i -> ( i, [ i ] )) |> IntDict.fromList
 
+        b2 : IntDict (List Int)
         b2 =
             List.range 5 15 |> List.map (\i -> ( i, [ i ] )) |> IntDict.fromList
 
+        bExpected : List ( Int, List Int )
         bExpected =
             [ ( 1, [ 1 ] ), ( 2, [ 2 ] ), ( 3, [ 3 ] ), ( 4, [ 4 ] ), ( 5, [ 5, 5 ] ), ( 6, [ 6, 6 ] ), ( 7, [ 7, 7 ] ), ( 8, [ 8, 8 ] ), ( 9, [ 9, 9 ] ), ( 10, [ 10, 10 ] ), ( 11, [ 11 ] ), ( 12, [ 12 ] ), ( 13, [ 13 ] ), ( 14, [ 14 ] ), ( 15, [ 15 ] ) ]
     in
@@ -159,15 +164,19 @@ randomDict =
 split : Test
 split =
     let
+        empty : IntDict Int
         empty =
             IntDict.empty
 
+        s1 : IntDict Int
         s1 =
             IntDict.fromList [ ( 1, 1 ), ( 2, 2 ) ]
 
+        s2 : IntDict Int
         s2 =
             IntDict.fromList [ ( 1, 1 ), ( 2, 2 ), ( 3, 3 ), ( 100, 100 ), ( -10, -10 ), ( 0, 0 ) ]
 
+        toLists : ( IntDict v, IntDict a ) -> ( List ( Int, v ), List ( Int, a ) )
         toLists ( d1, d2 ) =
             ( IntDict.toList d1, IntDict.toList d2 )
     in
@@ -201,6 +210,7 @@ split =
         , fuzz2 validKey randomDict "split on random dictionaries" <|
             \key dict ->
                 let
+                    items : List ( Int, Int )
                     items =
                         IntDict.toList dict
 
@@ -224,9 +234,11 @@ range =
         [ fuzz2 orderedTuple randomDict "range on random dictionaries" <|
             \( low, high ) dict ->
                 let
+                    items : List ( Int, Int )
                     items =
                         IntDict.toList dict
 
+                    expected : List ( Int, Int )
                     expected =
                         List.filter (\( a, _ ) -> a >= low && a < high) items
                 in
@@ -239,9 +251,11 @@ regressions =
     describe "regressions"
         [ describe "issue #1" <|
             let
+                a : IntDict Int
                 a =
                     IntDict.fromList [ ( 4, 20 ), ( 6, 11 ) ]
 
+                b : IntDict Int
                 b =
                     IntDict.fromList [ ( 1, 0 ), ( 2, 7 ), ( 3, 9 ), ( 4, 22 ), ( 6, 14 ) ]
             in
@@ -258,9 +272,11 @@ regressions =
             ]
         , describe "issue #5" <|
             let
+                a : IntDict ()
                 a =
                     IntDict.fromList [ ( -1, () ), ( 2, () ) ]
 
+                b : IntDict ()
                 b =
                     IntDict.fromList [ ( 2, () ), ( 3, () ) ]
             in
