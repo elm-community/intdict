@@ -10,7 +10,6 @@ import IntDict exposing (IntDict)
 import List
 import Maybe exposing (..)
 import Random
-import Shrink
 import Test exposing (..)
 
 
@@ -146,14 +145,9 @@ merge =
         ]
 
 
-randomValidKey : Random.Generator Int
-randomValidKey =
-    Random.int Random.minInt Random.maxInt
-
-
 validKey : Fuzz.Fuzzer Int
 validKey =
-    Fuzz.custom randomValidKey (Shrink.keepIf IntDict.isValidKey Shrink.int)
+    Fuzz.filter IntDict.isValidKey Fuzz.int
 
 
 randomDict : Fuzz.Fuzzer (IntDict Int)
@@ -221,7 +215,7 @@ split =
 
 orderedTuple : Fuzz.Fuzzer ( Int, Int )
 orderedTuple =
-    Fuzz.tuple ( validKey, validKey )
+    Fuzz.pair validKey validKey
         |> Fuzz.map (\( a, b ) -> ( min a b, max a b ))
 
 
