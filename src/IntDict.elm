@@ -24,7 +24,7 @@ probably enough room for key picks. **However, when sanitizing user input, it is
 that a prior `isValidKey` or one of the safe versions in `IntDict.Safe` is used!** This is
 to prevent the overflow behavior.
 
-This library is inspired by Haskells [IntMap](http://hackage.haskell.org/package/containers-0.2.0.1/docs/Data-IntMap.html),
+This library is inspired by Haskell's [IntMap](http://hackage.haskell.org/package/containers-0.2.0.1/docs/Data-IntMap.html),
 which in turn implements Okasaki and Gill's [Fast mergable integer maps](http://ittc.ku.edu/~andygill/papers/IntMap98.pdf).
 
 As noted in the [references](http://ittc.ku.edu/~andygill/papers/IntMap98.pdf), here are some runtimes:
