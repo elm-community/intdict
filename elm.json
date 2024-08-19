@@ -3,7 +3,7 @@
     "name": "elm-community/intdict",
     "summary": "Optimized dictionary specialization for Integers. Mirrors the dictionary API.",
     "license": "MIT",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "exposed-modules": [
         "IntDict",
         "IntDict.Safe"
